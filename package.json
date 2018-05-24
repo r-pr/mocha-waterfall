@@ -1,0 +1,20 @@
+{
+  "name": "mocha-waterfall",
+  "version": "0.0.1",
+  "description": "Runs test files with mocha sequentially.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/r-pr/mocha-waterfall.git"
+  },
+  "keywords": [
+    "mocha",
+    "testing",
+    "sequential"
+  ],
+  "author": "r-pr",
+  "license": "MIT"
+}
