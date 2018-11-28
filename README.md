@@ -17,7 +17,9 @@ const MOCHA_DIR = 'C:\\Users\\user\\AppData\\Roaming\\npm\\node_modules\\mocha\\
 const mochaWaterfall = new MochaWaterfall({
     filenames: ['test1.js', 'test2.js'],
     failOnStderr: true,
-    mochaDir: MOCHA_DIR
+    mochaDir: MOCHA_DIR,
+    bail: true,
+    maxRestarts: 1,
 });
 
 mochaWaterfall.execute();
@@ -32,3 +34,5 @@ Then run `node runall.js`
 | filenames    | array of strings | yes      | test files to execute |
 | failOnStderr | boolean          | yes      | whether to stop execution when a test file writes to `stderr` |
 | mochaDir     | string           | yes      | directory containing mocha executable file   |
+| bail         | boolean          | no       | whether to run `mocha` with `--bail` option; defaults to `false` |
+| maxRestarts  | number           | no       | how many times to rerun failed test file; defaults to 0 |
