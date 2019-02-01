@@ -18,8 +18,6 @@ function MochaWaterfall(options) {
         throw new Error('options.filenames is required');
     if (!options.filenames.constructor || options.filenames.constructor !== Array)
         throw new Error('options.filenames must be an array');
-    if (typeof options.mochaDir !== 'string')
-        throw new Error('options.mochaDir must be a string');
     if (typeof options.failOnStderr !== 'boolean')
         throw new Error('options.failOnStderr must be a boolean');
     this._filenames = options.filenames.slice();
@@ -62,19 +60,21 @@ function printRestartsStat(){
 
 var nRestarts = 0;
 
+function spawnTest(filename, bail){
+    var bailArg = bail ? '--bail' : '';
+    return spawn('mocha', [filename, bailArg], { shell: true });
+}
+
 MochaWaterfall.prototype.execute = function executeTests() {
     var filenames = this._filenames;
     if (firstTest){
         total = filenames.length;
         firstTest = false;
     }
-
     if (filenames.length > 0) {
         var filename = filenames.shift();
         current++;
-        var bail = this._bail ? '--bail' : '';
         nRestarts = 0;
-        
         var appendListeners = (proc)=>{
             var hasStderr = false;
             proc.stdout.on('data', (data) => {
@@ -93,7 +93,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
                         nRestarts++;
                         didRestart(filename);
                         console.log(colors.cyan('Restart attempt #' + nRestarts));
-                        child = spawn('node', [this._mochaDir, filename, bail]);
+                        child = spawnTest(filename, this._bail);
                         appendListeners(child);
                     } else {
                         printRestartsStat();
@@ -106,7 +106,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
             });
         }
         console.log(colors.cyan('\t' + filename + ' (' + current + '/' + total + ')'));
-        let child = spawn('node', [this._mochaDir, filename, bail]);
+        let child = spawnTest(filename, this._bail);
         appendListeners(child); 
     } else {
         var end = Date.now();
@@ -125,6 +125,5 @@ function prettyTime(totalSeconds){
     }
     return result;
 }
-
 
 module.exports = MochaWaterfall;
