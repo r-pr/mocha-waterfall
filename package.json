@@ -1,6 +1,6 @@
 {
   "name": "mocha-waterfall",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Runs test files with mocha sequentially.",
   "main": "index.js",
   "scripts": {

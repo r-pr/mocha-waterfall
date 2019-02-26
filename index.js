@@ -10,6 +10,7 @@ const colors = require('./lib/console-colors');
  * @param {String} options.mochaDir
  * @param {Boolean=} options.bail
  * @param {Number=} options.maxRestarts
+ * @param {String[]=} options.flags
  */
 function MochaWaterfall(options) {
     if (typeof options !== 'object' || !options)
@@ -20,6 +21,18 @@ function MochaWaterfall(options) {
         throw new Error('options.filenames must be an array');
     if (typeof options.failOnStderr !== 'boolean')
         throw new Error('options.failOnStderr must be a boolean');
+
+    if (options.flags) {
+        if (!options.flags.constructor || options.flags.constructor !== Array) {
+            throw new Error('options.flags must be an array');
+        }
+        options.flags.forEach(flag => {
+            if (typeof flag !== 'string') {
+                throw new Error('all flags must be strings');
+            }
+        });
+        this._flags = options.flags;
+    }
     this._filenames = options.filenames.slice();
     this._mochaDir = options.mochaDir;
     this._failOnStderr = options.failOnStderr;
@@ -60,9 +73,23 @@ function printRestartsStat(){
 
 var nRestarts = 0;
 
-function spawnTest(filename, bail){
-    var bailArg = bail ? '--bail' : '';
-    return spawn('mocha', [filename, bailArg], { shell: true });
+function spawnTest(filename, bail, flags) {
+    let args = [ filename ];
+    if (bail) {
+        args.push('--bail');
+    }
+    if (flags) {
+        flags.forEach(flag => {
+            if (!flag.match(/^--/)){
+                flag = '--' + flag;
+            }
+            if (inArray(args, flag)) {
+                return;
+            }
+            args.push(flag);
+        });
+    }
+    return spawn('mocha', args, { shell: true });
 }
 
 MochaWaterfall.prototype.execute = function executeTests() {
@@ -93,7 +120,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
                         nRestarts++;
                         didRestart(filename);
                         console.log(colors.cyan('Restart attempt #' + nRestarts));
-                        child = spawnTest(filename, this._bail);
+                        child = spawnTest(filename, this._bail, this._flags);
                         appendListeners(child);
                     } else {
                         printRestartsStat();
@@ -106,7 +133,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
             });
         }
         console.log(colors.cyan('\t' + filename + ' (' + current + '/' + total + ')'));
-        let child = spawnTest(filename, this._bail);
+        let child = spawnTest(filename, this._bail, this._flags);
         appendListeners(child); 
     } else {
         var end = Date.now();
@@ -124,6 +151,15 @@ function prettyTime(totalSeconds){
         result = minutes + ' min ' + result;
     }
     return result;
+}
+
+function inArray(arr, item) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === item) {
+            return true;
+        }
+    }
+    return false;
 }
 
 module.exports = MochaWaterfall;
