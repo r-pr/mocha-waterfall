@@ -11,6 +11,7 @@ const colors = require('./lib/console-colors');
  * @param {Boolean=} options.bail
  * @param {Number=} options.maxRestarts
  * @param {String[]=} options.flags
+ * @param {String} options.execCommand - what command to execute, defaults to 'mocha'
  */
 function MochaWaterfall(options) {
     if (typeof options !== 'object' || !options)
@@ -38,6 +39,7 @@ function MochaWaterfall(options) {
     this._failOnStderr = options.failOnStderr;
     this._bail = options.bail;
     this._maxRestarts = options.maxRestarts || 0;
+    this._execCommand = options.execCommand || 'mocha';
 
 }
 
@@ -73,7 +75,8 @@ function printRestartsStat(){
 
 var nRestarts = 0;
 
-function spawnTest(filename, bail, flags) {
+function spawnTest(filename, bail, flags, execCommand) {
+    let command = execCommand || 'mocha';
     let args = [ filename ];
     if (bail) {
         args.push('--bail');
@@ -89,7 +92,7 @@ function spawnTest(filename, bail, flags) {
             args.push(flag);
         });
     }
-    return spawn('mocha', args, { shell: true });
+    return spawn(execCommand, args, { shell: true });
 }
 
 MochaWaterfall.prototype.execute = function executeTests() {
@@ -120,7 +123,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
                         nRestarts++;
                         didRestart(filename);
                         console.log(colors.cyan('Restart attempt #' + nRestarts));
-                        child = spawnTest(filename, this._bail, this._flags);
+                        child = spawnTest(filename, this._bail, this._flags, this._execCommand);
                         appendListeners(child);
                     } else {
                         printRestartsStat();
@@ -133,7 +136,7 @@ MochaWaterfall.prototype.execute = function executeTests() {
             });
         }
         console.log(colors.cyan('\t' + filename + ' (' + current + '/' + total + ')'));
-        let child = spawnTest(filename, this._bail, this._flags);
+        let child = spawnTest(filename, this._bail, this._flags, this._execCommand);
         appendListeners(child); 
     } else {
         var end = Date.now();

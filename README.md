@@ -25,6 +25,20 @@ mochaWaterfall.execute();
 
 Then run `node runall.js`
 
+### Usage with local `mocha` and `npx`
+
+If you want to use locally installed `mocha`, you can specify `execCommand` option:
+
+```
+const mochaWaterfall = new MochaWaterfall({
+    //...
+    execCommand: 'npx mocha'
+
+    // or specify relative path:
+    // execCommand: '../node_modules/.bin/mocha'
+});
+```
+
 ## Options ##
 
 | name         | type             | required | meaning             |
@@ -34,3 +48,4 @@ Then run `node runall.js`
 | bail         | boolean          | no       | whether to run `mocha` with `--bail` flag; defaults to `false` |
 | flags        | array of strings | no       | flags to execute `mocha` with; e.g. `['bail', 'exit']` will result in executing `mocha --bail --exit` |
 | maxRestarts  | number           | no       | how many times to rerun failed test file; defaults to 0 |
+| execCommand  | string           | no       | what command to use to start `mocha`
